@@ -129,11 +129,12 @@ class AuctionController:
             """
             Actualiza el tiempo restante de una subasta activa
             
-            - **minutes**: Minutos a añadir (positivo) o restar (negativo)
+            - **seconds**: Segundos a añadir (positivo) o restar (negativo)
             """
             try:
                 result = self.service.update_time(auction_id, dto)
-                await websocket_manager.broadcast_time_update(auction_id, result.timer)
+                if result.remainingSeconds is not None:
+                    await websocket_manager.broadcast_time_update(auction_id, result.remainingSeconds)
                 return result
             except ValueError as e:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

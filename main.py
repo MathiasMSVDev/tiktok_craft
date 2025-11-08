@@ -463,6 +463,7 @@ async def admin_panel():
                 font-size: 0.85em;
                 font-weight: 600;
             }
+            .status-draft { background: #61affe; color: white; }
             .status-active { background: #49cc90; color: white; }
             .status-paused { background: #fca130; color: white; }
             .status-pending { background: #61affe; color: white; }
@@ -544,9 +545,9 @@ async def admin_panel():
                         </div>
                         <div class="form-group">
                             <label>Duración (minutos)</label>
-                            <input type="number" id="timer" min="1" max="120" required placeholder="Ej: 5">
+                            <input type="number" id="timer" min="1" max="1440" required placeholder="Ej: 5">
                         </div>
-                        <button type="submit" class="btn">Crear Subasta</button>
+                        <button type="submit" class="btn">Crear Subasta (DRAFT)</button>
                     </form>
                 </div>
                 
@@ -561,15 +562,80 @@ async def admin_panel():
         
         <script>
             let auctions = [];
+            let websockets = new Map(); // Mapa de WebSockets por auction_id
+            let timerIntervals = new Map(); // Intervalos de actualización de timers
             
             // Cargar subastas
             async function loadAuctions() {
                 try {
                     const response = await fetch('/api/auctions');
-                    auctions = await response.json();
+                    const newAuctions = await response.json();
+                    
+                    // Cerrar WebSockets de subastas que ya no existen
+                    for (const [auctionId, ws] of websockets.entries()) {
+                        if (!newAuctions.find(a => a.id === auctionId)) {
+                            ws.close();
+                            websockets.delete(auctionId);
+                            if (timerIntervals.has(auctionId)) {
+                                clearInterval(timerIntervals.get(auctionId));
+                                timerIntervals.delete(auctionId);
+                            }
+                        }
+                    }
+                    
+                    auctions = newAuctions;
                     renderAuctions();
+                    
+                    // Conectar WebSockets para subastas activas
+                    auctions.forEach(auction => {
+                        if (auction.status === 'active' && !websockets.has(auction.id)) {
+                            connectWebSocket(auction.id);
+                        }
+                    });
                 } catch (error) {
                     showAlert('Error al cargar subastas', 'error');
+                }
+            }
+            
+            // Conectar WebSocket para una subasta específica
+            function connectWebSocket(auctionId) {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws/auction/${auctionId}`;
+                const ws = new WebSocket(wsUrl);
+                
+                ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    
+                    // Actualizar auction en el array
+                    const auctionIndex = auctions.findIndex(a => a.id === auctionId);
+                    if (auctionIndex === -1) return;
+                    
+                    switch(message.type) {
+                        case 'time_update':
+                            auctions[auctionIndex].remainingSeconds = message.data.remainingSeconds;
+                            updateTimerDisplay(auctionId, message.data.remainingSeconds);
+                            break;
+                        case 'status_change':
+                            auctions[auctionIndex].status = message.data.status;
+                            renderAuctions();
+                            break;
+                    }
+                };
+                
+                ws.onclose = () => {
+                    websockets.delete(auctionId);
+                };
+                
+                websockets.set(auctionId, ws);
+            }
+            
+            // Actualizar display del timer en tiempo real
+            function updateTimerDisplay(auctionId, seconds) {
+                const timerEl = document.getElementById(`timer-${auctionId}`);
+                if (timerEl) {
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
                 }
             }
             
@@ -600,25 +666,28 @@ async def admin_panel():
                             </div>
                         </div>
                         ${auction.remainingSeconds !== null ? `
-                            <div class="timer-display">
+                            <div class="timer-display" id="timer-${auction.id}">
                                 ${Math.floor(auction.remainingSeconds / 60)}:${String(auction.remainingSeconds % 60).padStart(2, '0')}
                             </div>
                         ` : ''}
                         <div class="auction-controls">
+                            ${auction.status === 'draft' ? `
+                                <button class="btn btn-small btn-success" onclick="startAuction('${auction.id}')">▶ Iniciar</button>
+                                <button class="btn btn-small btn-danger" onclick="deleteAuction('${auction.id}')">🗑 Eliminar</button>
+                            ` : ''}
                             ${auction.status === 'active' ? `
-                                <button class="btn btn-small btn-warning" onclick="controlAuction('${auction.id}', 'pause')">⏸ Pausar</button>
-                                <button class="btn btn-small btn-danger" onclick="controlAuction('${auction.id}', 'stop')">⏹ Detener</button>
+                                <button class="btn btn-small btn-warning" onclick="pauseAuction('${auction.id}')">⏸ Pausar</button>
+                                <button class="btn btn-small btn-danger" onclick="stopAuction('${auction.id}')">⏹ Detener</button>
                                 <button class="btn btn-small btn-success" onclick="addTime('${auction.id}', 60)">➕ 1 min</button>
                                 <button class="btn btn-small btn-danger" onclick="addTime('${auction.id}', -60)">➖ 1 min</button>
                             ` : ''}
                             ${auction.status === 'paused' ? `
-                                <button class="btn btn-small btn-success" onclick="controlAuction('${auction.id}', 'resume')">▶ Reanudar</button>
-                                <button class="btn btn-small btn-danger" onclick="controlAuction('${auction.id}', 'stop')">⏹ Detener</button>
+                                <button class="btn btn-small btn-success" onclick="resumeAuction('${auction.id}')">▶ Reanudar</button>
+                                <button class="btn btn-small btn-danger" onclick="stopAuction('${auction.id}')">⏹ Detener</button>
                             ` : ''}
-                            ${auction.status === 'pending' ? `
-                                <button class="btn btn-small btn-success" onclick="controlAuction('${auction.id}', 'start')">▶ Iniciar</button>
+                            ${['completed', 'stopped'].includes(auction.status) ? `
+                                <button class="btn btn-small btn-danger" onclick="deleteAuction('${auction.id}')">🗑 Eliminar</button>
                             ` : ''}
-                            <button class="btn btn-small btn-danger" onclick="deleteAuction('${auction.id}')">🗑 Eliminar</button>
                         </div>
                         <div class="overlay-link">
                             <strong>Overlay URL:</strong> ${auction.overlayUrl}
@@ -645,7 +714,7 @@ async def admin_panel():
                     });
                     
                     if (response.ok) {
-                        showAlert('Subasta creada exitosamente', 'success');
+                        showAlert('Subasta creada en estado DRAFT', 'success');
                         document.getElementById('createForm').reset();
                         await loadAuctions();
                     } else {
@@ -657,21 +726,78 @@ async def admin_panel():
                 }
             });
             
-            // Controlar subasta
-            async function controlAuction(id, action) {
+            // Iniciar subasta
+            async function startAuction(id) {
                 try {
-                    const response = await fetch(`/api/auctions/${id}/control`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action })
+                    const response = await fetch(`/api/auctions/${id}/start`, {
+                        method: 'POST'
                     });
                     
                     if (response.ok) {
-                        showAlert(`Acción "${action}" ejecutada`, 'success');
+                        showAlert('Subasta iniciada y conectando con TikTok Live', 'success');
                         await loadAuctions();
                     } else {
                         const error = await response.json();
-                        showAlert(error.detail || 'Error al ejecutar acción', 'error');
+                        showAlert(error.detail || 'Error al iniciar subasta', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Error de conexión', 'error');
+                }
+            }
+            
+            // Pausar subasta
+            async function pauseAuction(id) {
+                try {
+                    const response = await fetch(`/api/auctions/${id}/pause`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        showAlert('Subasta pausada', 'success');
+                        await loadAuctions();
+                    } else {
+                        const error = await response.json();
+                        showAlert(error.detail || 'Error al pausar', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Error de conexión', 'error');
+                }
+            }
+            
+            // Reanudar subasta
+            async function resumeAuction(id) {
+                try {
+                    const response = await fetch(`/api/auctions/${id}/resume`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        showAlert('Subasta reanudada', 'success');
+                        await loadAuctions();
+                    } else {
+                        const error = await response.json();
+                        showAlert(error.detail || 'Error al reanudar', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Error de conexión', 'error');
+                }
+            }
+            
+            // Detener subasta
+            async function stopAuction(id) {
+                if (!confirm('¿Detener la subasta? Se desconectará de TikTok Live.')) return;
+                
+                try {
+                    const response = await fetch(`/api/auctions/${id}/stop`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        showAlert('Subasta detenida y desconectada de TikTok', 'success');
+                        await loadAuctions();
+                    } else {
+                        const error = await response.json();
+                        showAlert(error.detail || 'Error al detener', 'error');
                     }
                 } catch (error) {
                     showAlert('Error de conexión', 'error');
@@ -731,23 +857,22 @@ async def admin_panel():
                 }, 3000);
             }
             
-            // Cargar subastas al inicio y cada 5 segundos
+            // Cargar subastas al inicio y cada 30 segundos (WebSocket maneja tiempo real)
             loadAuctions();
-            setInterval(loadAuctions, 5000);
-if __name__ == "__main__":
-    import uvicorn
-    
-    # Obtener configuración desde variables de entorno
-    port = int(os.getenv("PORT", 8000))
-    workers = int(os.getenv("WORKERS", 1))
-    log_level = os.getenv("LOG_LEVEL", "info")
-    
-    uvicorn.run(
-        app, 
-        host="0.0.0.0", 
-        port=port,
-        log_level=log_level
-    )
+            setInterval(loadAuctions, 30000);
+            
+            // Limpiar WebSockets al cerrar la página
+            window.addEventListener('beforeunload', () => {
+                for (const ws of websockets.values()) {
+                    ws.close();
+                }
+                for (const interval of timerIntervals.values()) {
+                    clearInterval(interval);
+                }
+            });
+        </script>
+    </body>
+    </html>
     """
 
 

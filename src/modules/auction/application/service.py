@@ -13,7 +13,8 @@ from ..application.dtos import (
     UpdateAuctionDTO,
     AuctionResponseDTO, 
     TopDonorsResponseDTO,
-    StartAuctionResponseDTO
+    StartAuctionResponseDTO,
+    UpdateTimeDTO
 )
 
 
@@ -154,14 +155,14 @@ class AuctionService:
         
         return self._to_response_dto(auction)
         
-    def update_time(self, auction_id: str, seconds: int) -> AuctionResponseDTO:
+    def update_time(self, auction_id: str, dto: UpdateTimeDTO) -> AuctionResponseDTO:
         """Modifica el tiempo de una subasta"""
         auction = self._get_auction_or_raise(auction_id)
         
-        if seconds > 0:
-            auction.add_time(seconds)
+        if dto.seconds > 0:
+            auction.add_time(dto.seconds)
         else:
-            auction.subtract_time(abs(seconds))
+            auction.subtract_time(abs(dto.seconds))
             
         self.repository.save(auction)
         return self._to_response_dto(auction)
@@ -203,6 +204,17 @@ class AuctionService:
         logger = logging.getLogger(__name__)
         
         try:
+            # Verificar que la subasta existe y está en estado ACTIVE
+            auction = self.repository.find_by_id(auction_id)
+            if not auction:
+                logger.warning(f"⚠️ Donación ignorada: subasta {auction_id} no encontrada")
+                return
+            
+            if auction.status != AuctionStatus.ACTIVE:
+                logger.warning(f"⚠️ Donación ignorada: subasta en estado {auction.status.value} (solo se aceptan en ACTIVE)")
+                logger.info(f"   Usuario: {username} intentó donar {amount} coins ({gift_name})")
+                return
+            
             # Registrar donación en el tracker
             if auction_id in self.donation_trackers:
                 tracker = self.donation_trackers[auction_id]
@@ -231,6 +243,8 @@ class AuctionService:
                             tracker_data
                         )
                     )
+            else:
+                logger.warning(f"⚠️ No existe tracker de donaciones para la subasta {auction_id}")
         except Exception as e:
             logger.error(f"❌ Error procesando donación: {e}")
             import traceback
