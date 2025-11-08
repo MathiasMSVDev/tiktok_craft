@@ -10,7 +10,8 @@ import uuid
 
 class AuctionStatus(Enum):
     """Estados posibles de una subasta"""
-    PENDING = "pending"      # Creada pero no iniciada
+    DRAFT = "draft"          # Creada pero no configurada/iniciada
+    PENDING = "pending"      # Configurada y lista para iniciar (deprecated - usar DRAFT)
     ACTIVE = "active"        # En curso
     PAUSED = "paused"        # Pausada manualmente
     COMPLETED = "completed"  # Finalizada por tiempo
@@ -29,7 +30,7 @@ class Auction:
         titulo_subasta: str,
         timer_minutes: int,
         created_at: Optional[datetime] = None,
-        status: AuctionStatus = AuctionStatus.PENDING
+        status: AuctionStatus = AuctionStatus.DRAFT
     ):
         self.id = id
         self.name_streamer = name_streamer
@@ -43,12 +44,24 @@ class Auction:
         
     def start(self) -> None:
         """Inicia la subasta"""
-        if self.status != AuctionStatus.PENDING:
+        if self.status not in [AuctionStatus.DRAFT, AuctionStatus.PENDING]:
             raise ValueError(f"No se puede iniciar una subasta en estado {self.status.value}")
         
         self.status = AuctionStatus.ACTIVE
         self.started_at = datetime.now()
         self.remaining_seconds = self.timer_minutes * 60
+    
+    def update(self, titulo_subasta: Optional[str] = None, name_streamer: Optional[str] = None, timer_minutes: Optional[int] = None) -> None:
+        """Actualiza los datos de la subasta (solo en estado DRAFT)"""
+        if self.status != AuctionStatus.DRAFT:
+            raise ValueError(f"No se puede actualizar una subasta en estado {self.status.value}")
+        
+        if titulo_subasta is not None:
+            self.titulo_subasta = titulo_subasta
+        if name_streamer is not None:
+            self.name_streamer = name_streamer
+        if timer_minutes is not None:
+            self.timer_minutes = timer_minutes
         
     def pause(self) -> None:
         """Pausa la subasta"""

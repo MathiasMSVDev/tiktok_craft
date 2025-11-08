@@ -68,6 +68,15 @@ class ConnectionManager:
             }
         }
         await self.broadcast(message, auction_id)
+    
+    async def broadcast_donation_update(self, auction_id: str, donation_data: dict):
+        """Envía actualización de donaciones a todos los clientes"""
+        message = {
+            "type": "donation_update",
+            "auctionId": auction_id,
+            "data": donation_data
+        }
+        await self.broadcast(message, auction_id)
         
     def get_connections_count(self, auction_id: str) -> int:
         """Obtiene el número de conexiones activas para una subasta"""

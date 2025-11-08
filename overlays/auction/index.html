@@ -216,6 +216,281 @@
         .connection-status.disconnected {
             background: rgba(249, 62, 62, 0.8);
         }
+
+        /* Estilos para Top Donadores */
+        .top-donors-container {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .top-donors-title {
+            color: #fff;
+            font-size: 1.3em;
+            font-weight: 800;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .donor-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .no-donors {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .donor-item {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .donor-item:hover {
+            transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .new-donation {
+            animation: newDonationPulse 1s ease-out;
+            border-color: #ffeb3b;
+        }
+
+        @keyframes newDonationPulse {
+            0% {
+                transform: scale(0.95);
+                background: rgba(255, 235, 59, 0.3);
+            }
+            50% {
+                transform: scale(1.02);
+                background: rgba(255, 235, 59, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                background: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .donor-rank {
+            font-size: 1.2em;
+            font-weight: 900;
+            color: #fff;
+            min-width: 35px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .rank-1 { color: #ffd700; font-size: 1.4em; }
+        .rank-2 { color: #c0c0c0; font-size: 1.3em; }
+        .rank-3 { color: #cd7f32; font-size: 1.2em; }
+
+        .donor-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .donor-avatar-placeholder {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .donor-info {
+            flex: 1;
+        }
+
+        .donor-username {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2px;
+        }
+
+        .donor-stats {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85em;
+        }
+
+        .donor-amount {
+            text-align: right;
+            font-weight: 800;
+            color: #fff;
+            font-size: 1.1em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .coin-icon {
+            width: 20px;
+            height: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .donor-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .donor-item.new-donation {
+            animation: donorHighlight 1s ease-out;
+        }
+
+        @keyframes donorHighlight {
+            0% {
+                background: rgba(255, 235, 59, 0.5);
+                transform: scale(1.05);
+            }
+            100% {
+                background: rgba(255, 255, 255, 0.1);
+                transform: scale(1);
+            }
+        }
+
+        /* Animación cuando un donador cambia de posición */
+        .donor-item.position-changed {
+            animation: positionChange 0.8s ease-out;
+        }
+
+        @keyframes positionChange {
+            0% {
+                background: rgba(102, 126, 234, 0.6);
+                transform: translateX(-10px) scale(1.03);
+            }
+            50% {
+                background: rgba(118, 75, 162, 0.6);
+                transform: translateX(5px) scale(1.05);
+            }
+            100% {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        /* Animación cuando baja de posición */
+        .donor-item.position-down {
+            animation: positionDown 0.8s ease-out;
+        }
+
+        @keyframes positionDown {
+            0% {
+                background: rgba(249, 62, 62, 0.4);
+                transform: translateY(-5px);
+            }
+            50% {
+                background: rgba(249, 62, 62, 0.2);
+            }
+            100% {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateY(0);
+            }
+        }
+
+        .donor-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 1.1em;
+            margin-right: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .donor-rank.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        .donor-rank.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+            color: #333;
+            box-shadow: 0 0 10px rgba(192, 192, 192, 0.6);
+        }
+
+        .donor-rank.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #e89b65);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(205, 127, 50, 0.6);
+        }
+
+        .donor-rank.rank-4,
+        .donor-rank.rank-5 {
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        .donor-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .donor-username {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            margin-bottom: 3px;
+        }
+
+        .donor-stats {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85em;
+        }
+
+        .donor-amount {
+            color: #ffeb3b;
+            font-weight: 800;
+            font-size: 1.3em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .no-donors {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -239,6 +514,14 @@
         <div class="status-indicator">
             <span class="status-badge status-active" id="statusBadge">ACTIVA</span>
         </div>
+        
+        <!-- Top Donadores -->
+        <div class="top-donors-container">
+            <div class="top-donors-title">🏆 TOP DONADORES 🏆</div>
+            <ul class="donor-list" id="donorList">
+                <li class="no-donors">Esperando donaciones...</li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -246,6 +529,7 @@
         const auctionId = window.location.pathname.split('/').pop();
         let ws = null;
         let reconnectInterval = null;
+        let previousTopDonors = []; // Para comparar cambios en el top
         
         // Estados de la subasta
         const statusClasses = {
@@ -295,6 +579,9 @@
                         break;
                     case 'status_change':
                         updateStatus(message.data.status);
+                        break;
+                    case 'donation_update':
+                        updateTopDonors(message.data);
                         break;
                 }
             };
@@ -369,6 +656,153 @@
             statusBadge.textContent = statusLabels[status] || status.toUpperCase();
         }
         
+        // Actualizar top de donadores
+        function updateTopDonors(data) {
+            const donorList = document.getElementById('donorList');
+            
+            console.log('Actualizando top de donadores:', data);
+            
+            if (!data.topDonors || data.topDonors.length === 0) {
+                donorList.innerHTML = '<li class="no-donors">Esperando donaciones...</li>';
+                previousTopDonors = [];
+                return;
+            }
+            
+            // Crear mapa de posiciones anteriores
+            const previousPositions = {};
+            previousTopDonors.forEach((donor, index) => {
+                previousPositions[donor.username] = index + 1;
+            });
+            
+            // Detectar cambios en el top 5
+            const currentTop5 = data.topDonors.slice(0, 5).map(d => d.username).join(',');
+            const previousTop5 = previousTopDonors.slice(0, 5).map(d => d.username).join(',');
+            const hasTopChanged = currentTop5 !== previousTop5;
+            
+            // Log para debugging
+            if (hasTopChanged) {
+                console.log('🔄 TOP 5 CAMBIÓ:');
+                console.log('  Anterior:', previousTop5);
+                console.log('  Actual:', currentTop5);
+            }
+            
+            // Limpiar lista
+            donorList.innerHTML = '';
+            
+            // SVG de la moneda de TikTok
+            const coinSVG = `
+                <svg class="coin-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="24" cy="24" r="22" fill="url(#coinGradient)"/>
+                    <circle cx="24" cy="24" r="18" fill="#FFD700" opacity="0.9"/>
+                    <text x="24" y="32" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#FF6B6B" text-anchor="middle">₮</text>
+                    <defs>
+                        <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFE66D;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            `;
+            
+            // Renderizar cada donador
+            data.topDonors.forEach((donor, index) => {
+                const li = document.createElement('li');
+                li.className = 'donor-item';
+                
+                const currentRank = donor.rank;
+                const previousRank = previousPositions[donor.username];
+                
+                // Determinar tipo de animación
+                if (hasTopChanged) {
+                    // Nuevo en el top 5
+                    if (!previousRank || previousRank > 5) {
+                        console.log(`🎉 ${donor.username} NUEVO en el top 5 (posición ${currentRank})!`);
+                        li.classList.add('new-donation');
+                        setTimeout(() => li.classList.remove('new-donation'), 1000);
+                    }
+                    // Cambió de posición dentro del top 5
+                    else if (previousRank !== currentRank) {
+                        if (currentRank < previousRank) {
+                            console.log(`⬆️ ${donor.username} SUBIÓ de posición ${previousRank} → ${currentRank}`);
+                            li.classList.add('position-changed');
+                            setTimeout(() => li.classList.remove('position-changed'), 800);
+                        } else {
+                            console.log(`⬇️ ${donor.username} BAJÓ de posición ${previousRank} → ${currentRank}`);
+                            li.classList.add('position-down');
+                            setTimeout(() => li.classList.remove('position-down'), 800);
+                        }
+                    }
+                }
+                
+                // Log detallado de información del donador
+                console.log(`Donador #${donor.rank}:`, {
+                    username: donor.username,
+                    totalAmount: donor.totalAmount,
+                    donationCount: donor.donationCount
+                });
+                
+                // Generar URL del avatar
+                let avatarUrl = '';
+                let fallbackUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(donor.username)}&backgroundColor=667eea`;
+                
+                // Si hay foto de perfil de TikTok, usarla (prioridad 1)
+                if (donor.profilePicture && donor.profilePicture.trim() !== '') {
+                    avatarUrl = donor.profilePicture.trim();
+                } else {
+                    // Si no, usar servicio de generación de avatares (fallback)
+                    avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(donor.username)}&backgroundColor=667eea,764ba2`;
+                }
+                
+                // Crear avatar con mejor manejo de errores
+                const avatarHTML = `
+                    <img 
+                        src="${avatarUrl}" 
+                        alt="${donor.username}" 
+                        class="donor-avatar" 
+                        crossorigin="anonymous"
+                        referrerpolicy="no-referrer"
+                        onerror="this.onerror=null; this.src='${fallbackUrl}'"
+                    >
+                `;
+                
+                li.innerHTML = `
+                    <div class="donor-rank rank-${donor.rank}">#${donor.rank}</div>
+                    ${avatarHTML}
+                    <div class="donor-info">
+                        <div class="donor-username">${donor.username}</div>
+                        <div class="donor-stats">${donor.donationCount} donaciones</div>
+                    </div>
+                    <div class="donor-amount">
+                        ${formatAmount(donor.totalAmount)}
+                        ${coinSVG}
+                    </div>
+                `;
+                
+                donorList.appendChild(li);
+            });
+            
+            // Guardar top actual para próxima comparación
+            previousTopDonors = [...data.topDonors];
+        }
+        
+        // Formatear cantidad con separadores de miles
+        function formatAmount(amount) {
+            return Math.floor(amount).toLocaleString('es-ES');
+        }
+        
+        // Cargar top de donadores inicial
+        async function loadTopDonors() {
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/top-donors`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateTopDonors(data);
+                }
+            } catch (error) {
+                console.error('Error cargando top de donadores:', error);
+            }
+        }
+        
         // Crear partículas decorativas
         function createParticles() {
             const container = document.getElementById('particles');
@@ -385,6 +819,7 @@
         // Inicializar
         createParticles();
         connectWebSocket();
+        loadTopDonors(); // Cargar top de donadores al iniciar
         
         // Limpiar al cerrar
         window.addEventListener('beforeunload', () => {

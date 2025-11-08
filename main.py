@@ -16,6 +16,7 @@ from src.modules.auction.application.service import AuctionService
 from src.modules.auction.infrastructure.repository import AuctionRepository
 from src.modules.auction.infrastructure.controller import AuctionController
 from src.shared.websocket_manager import websocket_manager
+from src.shared.tiktok_connector import tiktok_connector
 
 
 # Configuración desde variables de entorno
@@ -45,7 +46,8 @@ app.mount("/static", StaticFiles(directory=str(overlays_dir)), name="static")
 
 # Inicializar servicios y controladores
 auction_repository = AuctionRepository()
-auction_service = AuctionService(auction_repository, base_url=BASE_URL)
+auction_service = AuctionService(auction_repository, tiktok_connector, base_url=BASE_URL)
+auction_service.set_websocket_manager(websocket_manager)
 auction_controller = AuctionController(auction_service)
 
 # Registrar rutas del módulo de subastas
@@ -751,4 +753,29 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # Obtener configuración desde variables de entorno
+    port = int(os.getenv("PORT", 8000))
+    log_level = os.getenv("LOG_LEVEL", "info")
+    
+    # Cleanup handler para desconectar de TikTok Live al cerrar
+    import signal
+    import sys
+    
+    def cleanup_handler(signum, frame):
+        """Limpieza al cerrar la aplicación"""
+        print("\n🛑 Cerrando aplicación...")
+        import asyncio
+        asyncio.run(tiktok_connector.disconnect_all())
+        print("✅ Desconectado de TikTok Live")
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, cleanup_handler)
+    signal.signal(signal.SIGTERM, cleanup_handler)
+    
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        log_level=log_level
+    )
