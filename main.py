@@ -54,6 +54,18 @@ auction_controller = AuctionController(auction_service)
 app.include_router(auction_controller.router)
 
 
+# Health check para Dokploy
+@app.get("/health")
+async def health_check():
+    """Endpoint de health check para Dokploy y monitoreo"""
+    return {
+        "status": "healthy",
+        "environment": ENVIRONMENT,
+        "version": "1.0.0",
+        "websocket_connections": len(websocket_manager._connections)
+    }
+
+
 # Ruta raíz - Dashboard
 @app.get("/", response_class=HTMLResponse)
 async def root():
